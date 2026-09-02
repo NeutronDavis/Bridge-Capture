@@ -1,0 +1,14 @@
+# Visual Studio & build outputs
+bin/
+obj/
+publish/
+Output/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# OS generated files
+[Dd]esktop.ini
+Thumbs.db

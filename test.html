@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bridge Capture — Live Test Page</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            width: 380px;
+            text-align: center;
+        }
+        h2 {
+            margin-top: 0;
+            color: #1a252f;
+        }
+        p {
+            color: #666;
+            font-size: 14px;
+        }
+        .btn {
+            background-color: #0066ff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+        .btn:hover {
+            background-color: #0052cc;
+        }
+        .status-box {
+            margin: 20px 0;
+            padding: 12px;
+            border-radius: 6px;
+            background-color: #eef5ff;
+            color: #0044cc;
+            font-weight: 500;
+            font-size: 14px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .img-container {
+            width: 200px;
+            height: 240px;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #fafafa;
+            overflow: hidden;
+        }
+        .img-container img {
+            max-width: 100%;
+            max-height: 100%;
+            display: none;
+        }
+        .placeholder-text {
+            color: #aaa;
+            font-size: 13px;
+        }
+        .details {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #888;
+            word-break: break-all;
+            text-align: left;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>ZKTeco Live Test</h2>
+    <p>Test the Bridge-Capture Kestrel WebSocket service live with your scanner.</p>
+
+    <button class="btn" onclick="startCapture()">Start Capture Session</button>
+
+    <div id="status" class="status-box">Click "Start Capture Session" to begin</div>
+
+    <div class="img-container">
+        <span id="placeholder" class="placeholder-text">Fingerprint preview</span>
+        <img id="fp-img" alt="Fingerprint" />
+    </div>
+
+    <div id="details" class="details"></div>
+</div>
+
+<script>
+    let ws = null;
+
+    async function startCapture() {
+        const statusEl = document.getElementById("status");
+        const imgEl = document.getElementById("fp-img");
+        const placeholderEl = document.getElementById("placeholder");
+        const detailsEl = document.getElementById("details");
+
+        statusEl.textContent = "Clearing previous capture state...";
+        imgEl.style.display = "none";
+        placeholderEl.style.display = "block";
+        detailsEl.style.display = "none";
+
+        // 1. Clear state via REST
+        try {
+            await fetch("https://localhost:5050/api/capture/start", { method: "POST" });
+        } catch (e) {
+            statusEl.style.backgroundColor = "#ffeef0";
+            statusEl.style.color = "#cc0022";
+            statusEl.textContent = "Cannot connect to https://localhost:5050. Is Bridge Capture running?";
+            return;
+        }
+
+        // 2. Open WebSocket
+        statusEl.style.backgroundColor = "#eef5ff";
+        statusEl.style.color = "#0044cc";
+        statusEl.textContent = "WebSocket Connected! Place finger on scanner...";
+
+        if (ws) ws.close();
+        ws = new WebSocket("wss://localhost:5050/ws/fingerprint");
+
+        ws.onopen = () => {
+            console.log("WebSocket connection established with wss://localhost:5050/ws/fingerprint");
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log("Captured Data:", data);
+
+            // Display image
+            imgEl.src = "data:image/bmp;base64," + data.base64Image;
+            imgEl.style.display = "block";
+            placeholderEl.style.display = "none";
+
+            statusEl.style.backgroundColor = "#e6fffa";
+            statusEl.style.color = "#007a5e";
+            statusEl.textContent = "Fingerprint Captured Successfully! ✓";
+
+            detailsEl.style.display = "block";
+            detailsEl.innerHTML = `
+                <strong>Captured At:</strong> ${data.capturedAt}<br/>
+                <strong>Template Base64 Length:</strong> ${data.templateBase64.length} chars<br/>
+                <strong>Sample:</strong> ${data.templateBase64.substring(0, 40)}...
+            `;
+        };
+
+        ws.onerror = (err) => {
+            console.error("WebSocket Error:", err);
+            statusEl.style.backgroundColor = "#ffeef0";
+            statusEl.style.color = "#cc0022";
+            statusEl.textContent = "WebSocket error. Ensure HTTPS localhost cert is trusted.";
+        };
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- net10.0-windows required for NotifyIcon (WinForms) and Windows Service -->
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RootNamespace>BridgeCapture</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- Enables System.Windows.Forms (NotifyIcon, ContextMenuStrip, etc.) -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <!--
+      biokey.ocx is a 32-bit COM component (WOW64). The host process MUST be
+      32-bit (x86) to activate it. Do NOT change this to AnyCPU or x64.
+    -->
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="localhost.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Windows Service lifecycle integration -->
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--
+      ZKFPEngX ActiveX/COM SDK interop assembly.
+      Generated from: C:\Program Files (x86)\FPSensor\Biokey\biokey.ocx
+      ProgID  : ZKFPEngXControl.ZKFPEngX
+      CLSID   : {CA69969C-2F27-41D3-954D-A48B941C3BA7}
+      TypeLib : {D95CB779-00CB-4B49-97B9-9F0B61CAB3C1}  v4.0
+
+      NOTE: EmbedInteropTypes=false so the COM event sinks work correctly.
+      NOTE: The OCX is 32-bit; PlatformTarget=x86 is required (see above).
+    -->
+    <Reference Include="Interop.ZKFPEngXControl">
+      <HintPath>lib\Interop.ZKFPEngXControl.dll</HintPath>
+      <EmbedInteropTypes>false</EmbedInteropTypes>
+    </Reference>
+  </ItemGroup>
+
+</Project>
