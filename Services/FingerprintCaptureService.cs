@@ -132,9 +132,18 @@ public class FingerprintCaptureService : BackgroundService
                 _fp.SensorIndex, _fp.ImageWidth, _fp.ImageHeight, _fp.TemplateLen);
 
             // 3. Register event handlers BEFORE calling BeginCapture
-            _fp.OnCapture        += OnCapture;
-            _fp.OnFingerTouching += OnFingerTouching;
-            _fp.OnFingerLeaving  += OnFingerLeaving;
+            try
+            {
+                _fp.OnCapture += OnCapture;
+                _logger.LogInformation("ZKFPEngX: OnCapture event handler registered successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "ZKFPEngX: Failed to register OnCapture event handler.");
+            }
+
+            try { _fp.OnFingerTouching += OnFingerTouching; } catch { /* optional event */ }
+            try { _fp.OnFingerLeaving  += OnFingerLeaving;  } catch { /* optional event */ }
 
             // 4. Start the continuous capture loop.
             //    The SDK will fire OnCapture each time a quality scan is completed.
@@ -250,12 +259,12 @@ public class FingerprintCaptureService : BackgroundService
         if (_fp is null) return;
         try
         {
-            _fp.OnCapture        -= OnCapture;
-            _fp.OnFingerTouching -= OnFingerTouching;
-            _fp.OnFingerLeaving  -= OnFingerLeaving;
+        try { _fp.OnCapture        -= OnCapture;        } catch { }
+        try { _fp.OnFingerTouching -= OnFingerTouching; } catch { }
+        try { _fp.OnFingerLeaving  -= OnFingerLeaving;  } catch { }
 
-            _fp.CancelCapture();
-            _fp.EndEngine();
+        try { _fp.CancelCapture(); } catch { }
+        try { _fp.EndEngine();     } catch { }
 
             System.Runtime.InteropServices.Marshal.ReleaseComObject(_fp);
             _fp = null;
