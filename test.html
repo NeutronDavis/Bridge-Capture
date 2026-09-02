@@ -131,7 +131,7 @@
         } catch (e) {
             statusEl.style.backgroundColor = "#ffeef0";
             statusEl.style.color = "#cc0022";
-            statusEl.textContent = "Cannot connect to https://localhost:5050. Is Bridge Capture running?";
+            statusEl.textContent = "Cannot connect to https://localhost:5050 (" + (e.message || e) + "). Ensure Bridge Capture is running and trusted in browser.";
             return;
         }
 

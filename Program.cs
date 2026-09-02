@@ -30,17 +30,13 @@ builder.Services.AddSingleton<WebSocketBroadcaster>();      // WebSocket client 
 builder.Services.AddHostedService<FingerprintCaptureService>(); // ZKTeco SDK listener
 
 // ── 4. CORS ──────────────────────────────────────────────────────────────────
-// Allow the production .NET Core web app to call this local server.
-// TODO: replace the placeholder with your actual production domain(s).
+// Allow local HTML test files (file://), local dev web servers, and production domains.
 builder.Services.AddCors(cors =>
 {
     cors.AddDefaultPolicy(policy =>
     {
         policy
-            .WithOrigins(
-                "https://your-production-app.com",  // ← TODO: set your domain
-                "https://localhost"                  // useful during local dev
-            )
+            .SetIsOriginAllowed(_ => true) // Allow local HTML files (file://) and any origin
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
