@@ -151,10 +151,16 @@
             const data = JSON.parse(event.data);
             console.log("Captured Data:", data);
 
+            const imgB64 = data.base64Image || data.Base64Image || "";
+            const tmplB64 = data.templateBase64 || data.TemplateBase64 || "";
+            const timeStr = data.capturedAt || data.CapturedAt || new Date().toISOString();
+
             // Display image
-            imgEl.src = "data:image/bmp;base64," + data.base64Image;
-            imgEl.style.display = "block";
-            placeholderEl.style.display = "none";
+            if (imgB64) {
+                imgEl.src = "data:image/bmp;base64," + imgB64;
+                imgEl.style.display = "block";
+                placeholderEl.style.display = "none";
+            }
 
             statusEl.style.backgroundColor = "#e6fffa";
             statusEl.style.color = "#007a5e";
@@ -162,9 +168,9 @@
 
             detailsEl.style.display = "block";
             detailsEl.innerHTML = `
-                <strong>Captured At:</strong> ${data.capturedAt}<br/>
-                <strong>Template Base64 Length:</strong> ${data.templateBase64.length} chars<br/>
-                <strong>Sample:</strong> ${data.templateBase64.substring(0, 40)}...
+                <strong>Captured At:</strong> ${timeStr}<br/>
+                <strong>Template Base64 Length:</strong> ${tmplB64.length} chars<br/>
+                <strong>Sample:</strong> ${tmplB64.substring(0, 40)}...
             `;
         };
 

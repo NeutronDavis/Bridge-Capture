@@ -36,6 +36,11 @@ public class WebSocketBroadcaster
         _logger.LogInformation("WebSocket client disconnected: {Id}  (total: {Count})", id, _clients.Count);
     }
 
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+
     // ── Broadcast ────────────────────────────────────────────────────────────
 
     /// <summary>
@@ -44,7 +49,7 @@ public class WebSocketBroadcaster
     /// </summary>
     public async Task BroadcastAsync(FingerprintPayload payload, CancellationToken ct)
     {
-        var json    = JsonSerializer.Serialize(payload);
+        var json    = JsonSerializer.Serialize(payload, _jsonOptions);
         var bytes   = Encoding.UTF8.GetBytes(json);
         var segment = new ArraySegment<byte>(bytes);
 
