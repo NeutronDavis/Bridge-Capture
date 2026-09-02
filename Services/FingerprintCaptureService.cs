@@ -217,18 +217,39 @@ public class FingerprintCaptureService : BackgroundService
             }
 
             // ── Extract fingerprint image ────────────────────────────────────
-            // GetFPImageBase64() returns a ready-made base64 string of the BMP image.
-            // This avoids any manual byte[] → base64 conversion for the image.
-            string imageBase64 = _fp!.GetFPImageBase64() ?? string.Empty;
+            // SaveBitmap generates a standard Windows BMP file with complete headers (BM...)
+            string imageBase64 = string.Empty;
+            byte[] imageBytes = Array.Empty<byte>();
 
-            // Also keep the raw bytes in state (from the base64 string)
-            byte[] imageBytes = imageBase64.Length > 0
-                ? Convert.FromBase64String(imageBase64)
-                : Array.Empty<byte>();
+            try
+            {
+                string tempBmp = Path.Combine(Path.GetTempPath(), $"zkfp_{Guid.NewGuid():N}.bmp");
+                _fp!.SaveBitmap(tempBmp);
+
+                if (File.Exists(tempBmp))
+                {
+                    imageBytes = File.ReadAllBytes(tempBmp);
+                    File.Delete(tempBmp); // clean up temp file
+                    imageBase64 = Convert.ToBase64String(imageBytes);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "SaveBitmap failed — trying GetFPImageBase64 fallback.");
+            }
+
+            if (string.IsNullOrEmpty(imageBase64))
+            {
+                imageBase64 = _fp!.GetFPImageBase64() ?? string.Empty;
+                if (!string.IsNullOrEmpty(imageBase64))
+                {
+                    try { imageBytes = Convert.FromBase64String(imageBase64); } catch { }
+                }
+            }
 
             _logger.LogInformation(
-                "Fingerprint captured ✓  template: {TmplLen} bytes  image base64: {ImgLen} chars",
-                templateBytes.Length, imageBase64.Length);
+                "Fingerprint captured ✓  template: {TmplLen} bytes  image: {ImgLen} bytes (base64: {B64Len} chars)",
+                templateBytes.Length, imageBytes.Length, imageBase64.Length);
 
             // ── Store in memory ──────────────────────────────────────────────
             _state.Set(templateBytes, imageBytes);
