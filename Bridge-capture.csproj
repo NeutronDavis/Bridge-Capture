@@ -14,6 +14,10 @@
       32-bit (x86) to activate it. Do NOT change this to AnyCPU or x64.
     -->
     <PlatformTarget>x86</PlatformTarget>
+    <Company>Southbridge</Company>
+    <Authors>Southbridge</Authors>
+    <Product>Bridge Capture</Product>
+    <Copyright>Copyright © 2026 Southbridge</Copyright>
   </PropertyGroup>
 
   <ItemGroup>

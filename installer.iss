@@ -4,13 +4,14 @@
 ;   1. Self-contained .NET 10 Bridge-Capture application
 ;   2. ZKTeco Biokey OCX SDK files + regsvr32 registration
 ;   3. SSL Certificate installation into Trusted Root Certification Authorities
-;   4. Desktop System Tray Auto-Startup (icon appears on taskbar)
+;   4. Desktop System Tray Auto-Startup + Desktop Shortcut
 ; =====================================================================
 
 [Setup]
 AppName=Bridge Capture
 AppVersion=1.0
-AppPublisher=Your Company
+AppPublisher=Southbridge
+AppPublisherURL=https://southbridge.com
 DefaultDirName={commonpf32}\BridgeCapture
 DefaultGroupName=Bridge Capture
 OutputBaseFilename=BridgeCaptureSetup
@@ -18,6 +19,9 @@ Compression=lzma2/max
 SolidCompression=yes
 PrivilegesRequired=admin
 ArchitecturesInstallIn64BitMode=
+
+[Tasks]
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
 ; 1. Application Files (from self-contained publish directory)
@@ -31,6 +35,8 @@ Source: "C:\Program Files (x86)\FPSensor\Biokey\ZKFPSensors\*.dll"; DestDir: "{a
 [Icons]
 ; Start Menu shortcut
 Name: "{group}\Bridge Capture"; Filename: "{app}\Bridge-capture.exe"
+; Desktop shortcut (created during installation)
+Name: "{autodesktop}\Bridge Capture"; Filename: "{app}\Bridge-capture.exe"; Tasks: desktopicon
 ; Windows Startup shortcut — auto-starts on login with System Tray icon visible!
 Name: "{userstartup}\Bridge Capture"; Filename: "{app}\Bridge-capture.exe"
 
