@@ -29,10 +29,26 @@ public class TrayApplicationContext : ApplicationContext
         menu.Items.Add("Exit",         null, OnExit);
 
         // ── Tray icon ────────────────────────────────────────────────────────
+        Icon appIcon = SystemIcons.Shield;
+        try
+        {
+            string iconPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "app.ico");
+            if (File.Exists(iconPath))
+            {
+                appIcon = new Icon(iconPath);
+            }
+            else
+            {
+                var exeIcon = Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+                if (exeIcon != null) appIcon = exeIcon;
+            }
+        }
+        catch { }
+
         _trayIcon = new NotifyIcon
         {
-            Text             = "Bridge Capture — Fingerprint Bridge",
-            Icon             = SystemIcons.Shield,   // swap for a custom .ico if desired
+            Text             = "NDDC-HRMS — Fingerprint Capture",
+            Icon             = appIcon,
             ContextMenuStrip = menu,
             Visible          = true
         };
@@ -40,7 +56,7 @@ public class TrayApplicationContext : ApplicationContext
         // Show a toast notification on startup
         _trayIcon.ShowBalloonTip(
             timeout:  3000,
-            tipTitle: "Bridge Capture",
+            tipTitle: "NDDC-HRMS Capture",
             tipText:  "Fingerprint bridge is running on wss://localhost:5050",
             tipIcon:  ToolTipIcon.Info);
 
