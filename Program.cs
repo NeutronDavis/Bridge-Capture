@@ -6,6 +6,22 @@ using BridgeCapture.Tray;
 //  Kestrel WebSocket server + ZKTeco fingerprint bridge + Windows Service
 // ════════════════════════════════════════════════════════════════════════════
 
+// ── 0. Single-instance check ──────────────────────────────────────────────────
+// Prevent launching a second instance if the Windows Service or background process is already running.
+using var mutex = new Mutex(true, "Global\\BridgeCapture_SingleInstance_Mutex", out bool isNewInstance);
+if (!isNewInstance)
+{
+    if (Environment.UserInteractive)
+    {
+        MessageBox.Show(
+            "Bridge Capture is already running in the background or as a Windows Service.",
+            "Bridge Capture",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Information);
+    }
+    return;
+}
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ── 1. Windows Service lifecycle ─────────────────────────────────────────────
