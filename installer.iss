@@ -4,7 +4,7 @@
 ;   1. Self-contained .NET 10 Bridge-Capture application
 ;   2. ZKTeco Biokey OCX SDK files + regsvr32 registration
 ;   3. SSL Certificate installation into Trusted Root Certification Authorities
-;   4. Windows Service registration (BridgeCaptureService, Auto-start)
+;   4. Desktop System Tray Auto-Startup (icon appears on taskbar)
 ; =====================================================================
 
 [Setup]
@@ -28,6 +28,12 @@ Source: "C:\Program Files (x86)\FPSensor\Biokey\biokey.ocx";        DestDir: "{a
 Source: "C:\Program Files (x86)\FPSensor\Biokey\*.dll";             DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "C:\Program Files (x86)\FPSensor\Biokey\ZKFPSensors\*.dll"; DestDir: "{app}\ZKFPSensors"; Flags: ignoreversion skipifsourcedoesntexist
 
+[Icons]
+; Start Menu shortcut
+Name: "{group}\Bridge Capture"; Filename: "{app}\Bridge-capture.exe"
+; Windows Startup shortcut — auto-starts on login with System Tray icon visible!
+Name: "{userstartup}\Bridge Capture"; Filename: "{app}\Bridge-capture.exe"
+
 [Run]
 ; A. Register the 32-bit ZKTeco Biokey OCX
 Filename: "{syswow64}\regsvr32.exe"; Parameters: "/s ""{app}\biokey.ocx"""; StatusMsg: "Registering ZKTeco Fingerprint SDK..."; Flags: runhidden
@@ -36,17 +42,9 @@ Filename: "{syswow64}\regsvr32.exe"; Parameters: "/s ""{app}\biokey.ocx"""; Stat
 ;    This makes wss://localhost:5050 trusted in Chrome, Edge, and Windows without user prompts.
 Filename: "certutil.exe"; Parameters: "-f -p ""BridgeCapture@Secure2024"" -importpfx Root ""{app}\localhost.pfx"""; StatusMsg: "Installing SSL Security Certificate..."; Flags: runhidden
 
-; C. Register as an Automatic Windows Service
-Filename: "{sys}\sc.exe"; Parameters: "create BridgeCaptureService binPath=""{app}\Bridge-capture.exe"" start=auto DisplayName=""Bridge Capture Fingerprint Service"""; StatusMsg: "Configuring Windows Service..."; Flags: runhidden
-
-; D. Start the service immediately
-Filename: "{sys}\sc.exe"; Parameters: "start BridgeCaptureService"; StatusMsg: "Starting Bridge Capture Service..."; Flags: runhidden
+; C. Launch Bridge Capture immediately in the user's Desktop session (System Tray icon will appear!)
+Filename: "{app}\Bridge-capture.exe"; Description: "Launch Bridge Capture System Tray App"; Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
-; Clean up service and registration on uninstall
-Filename: "{sys}\sc.exe"; Parameters: "stop BridgeCaptureService"; Flags: runhidden
-Filename: "{sys}\sc.exe"; Parameters: "delete BridgeCaptureService"; Flags: runhidden
+; Clean up registration on uninstall
 Filename: "{syswow64}\regsvr32.exe"; Parameters: "/s /u ""{app}\biokey.ocx"""; Flags: runhidden
-
-[Icons]
-Name: "{group}\Bridge Capture"; Filename: "{app}\Bridge-capture.exe"
